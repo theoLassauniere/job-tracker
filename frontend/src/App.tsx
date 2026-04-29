@@ -1,15 +1,11 @@
-import React from 'react';
-import './App.css';
-import ApplicationCard from "./components/application-card/application-card";
+import './App.css'
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <ApplicationCard />
-      </header>
+    <div>
+
     </div>
-  );
+  )
 }
 
-export default App;
+export default App
