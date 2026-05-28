@@ -9,9 +9,10 @@ Application web de suivi de candidatures. Monorepo contenant le frontend et plus
 ```
 job-tracker/
 ├── frontend/            # SPA React + TypeScript + Vite
-├── backend/
-│   ├── gateway/         # API Gateway (point d'entrée unique)
-│   └── <service>/       # Microservices Quarkus (ex: auth-service, jobs-service)
+├── backend/             # Projets Quarkus indépendants (un POM par service)
+│   ├── gateway/         # API Gateway, point d'entrée unique — port 8080
+│   ├── auth-service/    # Authentification / utilisateurs — port 8081
+│   └── jobs-service/    # Cœur métier : candidatures/offres — port 8082
 ├── docker-compose.yml   # Orchestration locale (services + PostgreSQL + gateway)
 └── CLAUDE.md
 ```
@@ -25,11 +26,14 @@ job-tracker/
 - Scripts : `dev`, `build` (`tsc -b && vite build`), `lint`, `preview`
 
 ### Backend (`/backend`)
-- **Quarkus** (un projet par microservice)
-- Build : **Maven**
+- **Quarkus 3.36.0** sur **Java 21**, un projet par microservice
+- Build : **Maven** — **projets indépendants** (pas de parent POM ; chaque service a son propre `pom.xml` autonome)
+- `groupId` / package racine : `io.github.theolassauniere.jobtracker.<service>`
 - Base de données : **PostgreSQL** (une base/schéma par service, pas de base partagée entre services)
-- Persistance : Hibernate ORM avec Panache (à confirmer par le décisionnaire si autre choix)
+- Persistance : Hibernate ORM avec Panache
 - Communication inter-services : **Quarkus REST Client** (REST synchrone)
+- Healthcheck : `quarkus-smallrye-health` (endpoint `/q/health`) sur chaque service
+- Config externalisée : toutes les valeurs runtime (port, datasource) passent par variables d'environnement avec valeurs par défaut dev
 
 ## Déploiement
 
@@ -61,5 +65,5 @@ L'application doit rester **déployable de bout en bout** :
 ## Statut actuel
 
 - `frontend/` : app React/Vite/Tailwind scaffoldée (squelette).
-- `backend/` : **pas encore créé** — à initialiser (gateway + premiers services).
+- `backend/` : squelette des 3 services Quarkus (gateway, auth-service, jobs-service) — `pom.xml`, `application.properties`, arborescence des packages. **Pas de code métier** (classes/entités à écrire).
 - `docker-compose.yml` et Dockerfiles : **à créer**.
