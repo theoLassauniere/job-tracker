@@ -21,8 +21,7 @@ job-tracker/
 ### Frontend (`/frontend`)
 - **React 19** + **TypeScript** + **Vite 8**
 - **Tailwind CSS v4** (via `@tailwindcss/vite`)
-- Gestionnaire de paquets cible : **pnpm**
-  - ⚠️ L'existant a été scaffoldé avec npm (`package-lock.json` présent). Migration vers pnpm à effectuer (supprimer `package-lock.json`, générer `pnpm-lock.yaml`).
+- Gestionnaire de paquets : **pnpm** (version pinnée via `packageManager` dans `package.json`, géré par corepack). Utiliser `pnpm install` / `pnpm <script>`.
 - Scripts : `dev`, `build` (`tsc -b && vite build`), `lint`, `preview`
 
 ### Backend (`/backend`)
