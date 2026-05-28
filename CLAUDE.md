@@ -29,8 +29,8 @@ job-tracker/
 - **Quarkus 3.36.0** sur **Java 21**, un projet par microservice
 - Build : **Maven** — **projets indépendants** (pas de parent POM ; chaque service a son propre `pom.xml` autonome)
 - `groupId` / package racine : `io.github.theolassauniere.jobtracker.<service>`
-- Base de données : **PostgreSQL** (une base/schéma par service, pas de base partagée entre services)
-- Persistance : Hibernate ORM avec Panache
+- Base de données : **PostgreSQL** — **instance partagée**, base unique `jobtracker`, un **schéma dédié par service** (`auth`, `jobs`). Chaque service ne touche que son schéma. Schémas créés à l'init du conteneur Postgres (`docker/postgres/init/`).
+- Persistance : Hibernate ORM avec Panache (`quarkus.hibernate-orm.database.default-schema` par service)
 - Communication inter-services : **Quarkus REST Client** (REST synchrone)
 - Healthcheck : `quarkus-smallrye-health` (endpoint `/q/health`) sur chaque service
 - Config externalisée : toutes les valeurs runtime (port, datasource) passent par variables d'environnement avec valeurs par défaut dev
@@ -38,10 +38,11 @@ job-tracker/
 ## Déploiement
 
 L'application doit rester **déployable de bout en bout** :
-- **Dockerfiles optimisés** pour chaque composant :
-  - Backend : builds multi-stage Quarkus (privilégier `quarkus-app` / fast-jar, voire natif GraalVM si décidé), images de base minimales (ex: `ubi-minimal`).
-  - Frontend : multi-stage (build Vite → service statique via nginx léger).
-- **docker-compose.yml** à la racine pour orchestrer en local : tous les services, la gateway, et PostgreSQL.
+- **Dockerfiles multi-stage optimisés** pour chaque composant :
+  - Backend : build `maven:3.9.16-eclipse-temurin-21` → packaging **JVM fast-jar** (`quarkus-app`), runtime `ubi9/openjdk-21-runtime` (user 185, layers `lib`/`app`/`quarkus` pour le cache).
+  - Frontend : build pnpm (`node:24-alpine`) → service statique via `nginx:alpine` (config SPA + proxy `/api/` vers la gateway).
+- **docker-compose.yml** à la racine orchestre tout en local. Ports exposés sur l'hôte : **frontend `3000`**, **gateway `8080`**, **postgres `5432`**. Les services auth/jobs ne sont joignables qu'en interne (réseau compose), via la gateway.
+- Ordre de démarrage géré par `depends_on` + healthchecks (postgres `pg_isready`, services `/q/health/ready`).
 - Garder en tête la déployabilité à **chaque** changement (variables d'environnement, ports, healthchecks, pas de valeurs en dur).
 
 ## Principes de scalabilité
@@ -66,4 +67,4 @@ L'application doit rester **déployable de bout en bout** :
 
 - `frontend/` : app React/Vite/Tailwind scaffoldée (squelette).
 - `backend/` : squelette des 3 services Quarkus (gateway, auth-service, jobs-service) — `pom.xml`, `application.properties`, arborescence des packages. **Pas de code métier** (classes/entités à écrire).
-- `docker-compose.yml` et Dockerfiles : **à créer**.
+- Docker : `Dockerfile` par composant + `docker-compose.yml` + init Postgres. **Non testés en build** (Docker pas installé sur la machine de dev — nécessite Docker Desktop).
