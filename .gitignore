@@ -1,0 +1,12 @@
+# Logs (dont sorties de build temporaires)
+*.log
+build.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Variables d'environnement locales
+.env
+.env.local
+*.local
